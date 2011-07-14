@@ -1,0 +1,7 @@
+name: NightLand
+main: com.chebab.nightland.NightLand
+version: 0.1
+website: none
+author: Blambi
+description: >
+             Makes it always be night...
