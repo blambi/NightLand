@@ -11,3 +11,7 @@ stormDurationMax: 10000
 # Time between extra storms
 niceWeatherMin: 500
 niceWeatherMax: 5000
+
+# Is it impossible to place beds? (but this is rather buggy, so sleep
+# prevention is more recommended.)
+prohibitBedPlacing: true

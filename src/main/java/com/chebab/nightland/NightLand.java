@@ -11,6 +11,10 @@ import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.util.config.Configuration;
 
+import org.bukkit.event.Event;
+import org.bukkit.event.Event.Priority;
+import org.bukkit.plugin.PluginManager;
+
 public class NightLand extends JavaPlugin
 {
     private int moonwatcher_id = -1;
@@ -18,6 +22,9 @@ public class NightLand extends JavaPlugin
     private int weather_time = -1;
     private Configuration conf;
     private Random rnd;
+    private List<String> worlds;
+
+    private final NightLandBlockListener blocklistener = new NightLandBlockListener( this );
     
     public void onDisable() {
         if( moonwatcher_id != -1 )
@@ -55,6 +62,7 @@ public class NightLand extends JavaPlugin
                 conf.setProperty( "stormDurationMax", 10000 );
                 conf.setProperty( "niceWeatherMin", 500 );
                 conf.setProperty( "niceWeatherMax", 5000 );
+                conf.setProperty( "prohibitBedPlacing", true );
 
                 conf.save();
             }
@@ -73,13 +81,22 @@ public class NightLand extends JavaPlugin
     }
     
     public void onEnable() {
+        PluginManager pm = getServer().getPluginManager();
         rnd = new Random();
+        worlds = conf.getStringList( "worlds", null );
+        
+        // Set up the blockplacing event
+        if( conf.getBoolean( "prohibitBedPlacing", false ) )
+        {
+
+            pm.registerEvent( Event.Type.BLOCK_PLACE, blocklistener,
+                              Priority.Normal, this );
+        }
 
         // Watching the moon.. or well the time but yea..
         moonwatcher_id = getServer().getScheduler().scheduleSyncRepeatingTask(
             this, new Runnable() {
                     public void run() {
-                        List<String> worlds = conf.getStringList( "worlds", null );
                         for( String world_name: worlds )
                         {
                             World w = getServer().getWorld( world_name );
@@ -104,7 +121,6 @@ public class NightLand extends JavaPlugin
 
             stormwatcher_id = getServer().getScheduler().scheduleSyncRepeatingTask( this, new Runnable() {
                     public void run() {
-                        List<String> worlds = conf.getStringList( "worlds", null );
                         for( String world_name: worlds )
                         {
                             World w = getServer().getWorld( world_name );
@@ -152,10 +168,12 @@ public class NightLand extends JavaPlugin
         
         System.out.print( "[NightLand] loaded, will check:" );
 
-        List<String> worlds = conf.getStringList( "worlds", null );
         for( String world_name: worlds )
             System.out.print( " " + world_name );
         System.out.print( "\n" );
     }
 
+    public Boolean isWorldNightLand( String world_name ) {
+        return worlds.contains( world_name );
+    }
 }
