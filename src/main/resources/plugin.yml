@@ -1,7 +1,7 @@
 name: NightLand
 main: com.chebab.nightland.NightLand
-version: 0.1
-website: none
-author: Blambi
+version: 0.2
+website: https://github.com/blambi/NightLand
+author: blambi
 description: >
              Makes it always be night...
