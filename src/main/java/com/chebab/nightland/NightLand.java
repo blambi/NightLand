@@ -15,6 +15,7 @@ public class NightLand extends JavaPlugin
 {
     private int moonwatcher_id = -1;
     private int stormwatcher_id = -1;
+    private int weather_time = -1;
     private Configuration conf;
     private Random rnd;
     
@@ -22,6 +23,9 @@ public class NightLand extends JavaPlugin
         if( moonwatcher_id != -1 )
             getServer().getScheduler().cancelTask( moonwatcher_id );
 
+        if( stormwatcher_id != -1 )
+            getServer().getScheduler().cancelTask( stormwatcher_id );
+        
         System.out.println( "[NightLand] unloaded" );
     }
 
@@ -47,9 +51,11 @@ public class NightLand extends JavaPlugin
                     getServer().getWorlds().get( 0 ).getName() };
                 conf.setProperty( "worlds", def_world  );
                 conf.setProperty( "extraStorms", false );
-                conf.setProperty( "stormProbability", 6 );
                 conf.setProperty( "stormDurationMin", 2500 );
                 conf.setProperty( "stormDurationMax", 10000 );
+                conf.setProperty( "niceWeatherMin", 500 );
+                conf.setProperty( "niceWeatherMax", 5000 );
+
                 conf.save();
             }
             catch( IOException e )
@@ -77,23 +83,6 @@ public class NightLand extends JavaPlugin
                         for( String world_name: worlds )
                         {
                             World w = getServer().getWorld( world_name );
-                            int storm_min = conf.getInt( "stormDurationMin", 2500 );
-                            int storm_max = conf.getInt( "stormDurationMax", 10000 ) - storm_min;
-
-                            // Extra Storms with thundering death!
-                            if( ! w.isThundering() && // FIXME: move to another runnable
-                                conf.getBoolean( "extraStorms", false ) )
-                            {
-                                if( rnd.nextInt( 10 ) < conf.getInt( "stormProbability", 6 ) )
-                                {
-                                    System.out.print( "extraStorm!!!" );
-                                    w.setThundering( true );
-                                    w.setStorm( true );
-                                    w.setThunderDuration( storm_min + rnd.nextInt( storm_max ) );
-                                    System.out.print( w.getThunderDuration() );
-                                }
-                                
-                            }
                             
                             // Check time reset if needed
                             if( w.getTime() < (long)13672 ||
@@ -106,6 +95,61 @@ public class NightLand extends JavaPlugin
                 },
             (long)0, (long)1000 );
 
+        // Weather gunk
+        if( conf.getBoolean( "extraStorms", false ) )
+        {
+            weather_time = Math.min(
+                conf.getInt( "stormDurationMin", 2500 ),
+                conf.getInt( "niceWeatherMin", 500 ) );
+
+            stormwatcher_id = getServer().getScheduler().scheduleSyncRepeatingTask( this, new Runnable() {
+                    public void run() {
+                        List<String> worlds = conf.getStringList( "worlds", null );
+                        for( String world_name: worlds )
+                        {
+                            World w = getServer().getWorld( world_name );
+                            int storm_min = conf.getInt( "stormDurationMin",
+                                                         2500 );
+                            int storm_max = conf.getInt( "stormDurationMax",
+                                                         10000 ) - storm_min;
+                            int nice_min = conf.getInt( "niceWeatherMin",
+                                                         500 );
+                            int nice_max = conf.getInt( "niceWeatherMax",
+                                                         5000 ) - nice_min;
+                            int duration = w.getWeatherDuration();
+                            
+                            if( duration > Math.max( storm_max, nice_max ) )
+                                duration = 0; // Outside our bounds.
+                            else if( duration > weather_time )
+                                continue; // Nothing to do for this one yet.
+                            
+                            if( w.isThundering() )
+                            {
+                                // Yay sunshine.. wait... no okey no rain then.
+                                w.setThundering( false );
+                                w.setStorm( false );
+                                w.setThunderDuration( 0 );
+                                duration = storm_min + rnd.nextInt( storm_max );
+                            }
+                            else
+                            {
+                                // Okey lets make some baaad weather then
+                                w.setThundering( true );
+                                w.setStorm( true );
+                                w.setThunderDuration(
+                                    storm_min + rnd.nextInt( storm_max ) );
+
+                                duration = w.getThunderDuration();
+                                
+                            }
+
+                            w.setWeatherDuration( duration );
+                        }
+                    }
+                }, (long)0, (long)weather_time );
+        }
+
+        
         System.out.print( "[NightLand] loaded, will check:" );
 
         List<String> worlds = conf.getStringList( "worlds", null );

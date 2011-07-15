@@ -4,10 +4,6 @@ worlds:
 # More storms? or only standard ones?
 extraStorms: true
 
-# x in 10; think of it as a ten sided die roll, every thing under x is
-# a new storm
-stormProbability: 6
-
 # Duration in ticks
 stormDurationMin: 2500
 stormDurationMax: 10000
