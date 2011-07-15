@@ -63,7 +63,7 @@ public class NightLand extends JavaPlugin
                 conf.setProperty( "niceWeatherMin", 500 );
                 conf.setProperty( "niceWeatherMax", 5000 );
                 conf.setProperty( "prohibitBedPlacing", true );
-
+                conf.setProperty( "bedPlacingMessage", "You can not do that!" );
                 conf.save();
             }
             catch( IOException e )
@@ -176,4 +176,8 @@ public class NightLand extends JavaPlugin
     public Boolean isWorldNightLand( String world_name ) {
         return worlds.contains( world_name );
     }
+
+    public String getBedPlacingMessage() {
+        return conf.getString( "bedPlacingMessage", "You can not do that!" );
+    }        
 }

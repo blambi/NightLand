@@ -15,3 +15,6 @@ niceWeatherMax: 5000
 # Is it impossible to place beds? (but this is rather buggy, so sleep
 # prevention is more recommended.)
 prohibitBedPlacing: true
+
+# Message to display if a player tries to place a bed
+bedPlacingMessage: One can not place beds in the dark of the ethernal night
