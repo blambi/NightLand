@@ -20,7 +20,6 @@ public class NightLand extends JavaPlugin
     private int moonwatcher_id = -1;
     private int stormwatcher_id = -1;
     private int weather_time = -1;
-    private FileConfiguration conf;
     private Random rnd;
     private List<String> worlds;
 
@@ -38,60 +37,21 @@ public class NightLand extends JavaPlugin
 
 
     public void onLoad() {
-        // Load config
-        // make dir if not there.
-        new File( "plugins" + File.separator + "NightLand" ).mkdir();
-        File raw_conf = new File( "plugins" + File.separator + "NightLand" +
-                                  File.separator + "config.yml" );
-
-        // create default if there isn't any config yet
-        if( ! raw_conf.exists() )
-        {
-            System.err.println( "[NightLand] Creating a default config file" );
-
-            try
-            {
-                raw_conf.createNewFile();
-                conf = new FileConfiguration( raw_conf );
-
-                String[] def_world = {
-                    getServer().getWorlds().get( 0 ).getName() };
-                conf.setProperty( "worlds", def_world  );
-                conf.setProperty( "extraStorms", false );
-                conf.setProperty( "stormDurationMin", 2500 );
-                conf.setProperty( "stormDurationMax", 10000 );
-                conf.setProperty( "niceWeatherMin", 500 );
-                conf.setProperty( "niceWeatherMax", 5000 );
-                conf.setProperty( "prohibitBedPlacing", true );
-                conf.setProperty( "bedPlacingMessage", "You can not do that!" );
-                conf.save();
-            }
-            catch( IOException e )
-            {
-                System.err.println( "[NightLand] oooh couldn't save..." );
-                e.printStackTrace();
-            }
-        }
-        else
-        {
-            conf = new Configuration( raw_conf );
-
-        }
-        conf.load();
+        this.getConfig();
+        this.getConfig().options().copyDefaults(true);
     }
 
     public void onEnable() {
         PluginManager pm = getServer().getPluginManager();
         rnd = new Random();
-        worlds = conf.getStringList( "worlds", null );
+        worlds = this.getConfig().getStringList( "worlds" );
 
         // Set up the blockplacing event
-        if( conf.getBoolean( "prohibitBedPlacing", false ) )
+        if( this.getConfig().getBoolean( "prohibitBedPlacing", false ) )
         {
             blocklistener = new NightLandBlockListener( this );
 
-            pm.registerEvent( blocklistener,
-                              EventPriority.NORMAL, this );
+            pm.registerEvents( blocklistener, this );
         }
 
         // Watching the moon.. or well the time but yea..
@@ -114,25 +74,25 @@ public class NightLand extends JavaPlugin
             (long)0, (long)1000 );
 
         // Weather gunk
-        if( conf.getBoolean( "extraStorms", false ) )
+        if( this.getConfig().getBoolean( "extraStorms", false ) )
         {
             weather_time = Math.min(
-                conf.getInt( "stormDurationMin", 2500 ),
-                conf.getInt( "niceWeatherMin", 500 ) );
+                this.getConfig().getInt( "stormDurationMin", 2500 ),
+                this.getConfig().getInt( "niceWeatherMin", 500 ) );
 
             stormwatcher_id = getServer().getScheduler().scheduleSyncRepeatingTask( this, new Runnable() {
                     public void run() {
                         for( String world_name: worlds )
                         {
                             World w = getServer().getWorld( world_name );
-                            int storm_min = conf.getInt( "stormDurationMin",
-                                                         2500 );
-                            int storm_max = conf.getInt( "stormDurationMax",
-                                                         10000 ) - storm_min;
-                            int nice_min = conf.getInt( "niceWeatherMin",
-                                                         500 );
-                            int nice_max = conf.getInt( "niceWeatherMax",
-                                                         5000 ) - nice_min;
+                            int storm_min = getConfig().getInt( "stormDurationMin",
+                                                                2500 );
+                            int storm_max = getConfig().getInt( "stormDurationMax",
+                                                                10000 ) - storm_min;
+                            int nice_min = getConfig().getInt( "niceWeatherMin",
+                                                               500 );
+                            int nice_max = getConfig().getInt( "niceWeatherMax",
+                                                               5000 ) - nice_min;
                             int duration = w.getWeatherDuration();
 
                             if( duration > Math.max( storm_max, nice_max ) )
@@ -179,6 +139,6 @@ public class NightLand extends JavaPlugin
     }
 
     public String getBedPlacingMessage() {
-        return conf.getString( "bedPlacingMessage", "You can not do that!" );
+        return this.getConfig().getString( "bedPlacingMessage", "You can not do that!" );
     }
 }
