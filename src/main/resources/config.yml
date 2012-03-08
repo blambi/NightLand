@@ -12,6 +12,10 @@ stormDurationMax: 10000
 niceWeatherMin: 500
 niceWeatherMax: 5000
 
+# Clock Times
+dayStart: 13672
+dayEnd: 21000
+
 # Is it impossible to place beds? (but this is rather buggy, so sleep
 # prevention is more recommended.)
 prohibitBedPlacing: true

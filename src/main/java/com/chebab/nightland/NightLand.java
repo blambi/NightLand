@@ -63,10 +63,10 @@ public class NightLand extends JavaPlugin
                             World w = getServer().getWorld( world_name );
 
                             // Check time reset if needed
-                            if( w.getTime() < (long)13672 ||
-                                w.getTime() > (long)21000 )
+                            if( w.getTime() < getConfig().getLong( "dayStart" ) ||
+                                w.getTime() > getConfig().getLong( "dayEnd" ))
                             {
-                                w.setTime( (long)13672 );
+                                w.setTime( getConfig().getLong( "dayStart" ) );
                             }
                         }
                     }
