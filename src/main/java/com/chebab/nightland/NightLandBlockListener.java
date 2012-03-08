@@ -1,20 +1,21 @@
 package com.chebab.nightland;
 
-import org.bukkit.event.block.BlockListener;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockCanBuildEvent;
+import org.bukkit.event.EventHandler;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.Material;
 
-public class NightLandBlockListener extends BlockListener {
+public class NightLandBlockListener implements Listener {
     private final NightLand plugin;
 
     public NightLandBlockListener( NightLand instance) {
         plugin = instance;
     }
 
-    @Override
+    @EventHandler
     public void onBlockPlace( BlockPlaceEvent event ) {
         if( plugin.isWorldNightLand( event.getPlayer().getWorld().getName() ) )
         {
@@ -22,11 +23,11 @@ public class NightLandBlockListener extends BlockListener {
             Block block = event.getBlockPlaced();
             Block block_near;
             BlockFace[] dirs = { BlockFace.EAST, BlockFace.WEST, BlockFace.NORTH, BlockFace.SOUTH };
-            
+
             if( block.getType() == Material.BED_BLOCK )
             {
                 block.setType( Material.AIR );
-                
+
                 for( BlockFace bf: dirs )
                 {
                     block_near = block.getRelative( bf );

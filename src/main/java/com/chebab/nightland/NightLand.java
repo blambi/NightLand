@@ -9,10 +9,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.Server;
 import org.bukkit.World;
-import org.bukkit.util.config.Configuration;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import org.bukkit.event.Event;
-import org.bukkit.event.Event.Priority;
+import org.bukkit.event.EventPriority;
 import org.bukkit.plugin.PluginManager;
 
 public class NightLand extends JavaPlugin
@@ -20,19 +20,19 @@ public class NightLand extends JavaPlugin
     private int moonwatcher_id = -1;
     private int stormwatcher_id = -1;
     private int weather_time = -1;
-    private Configuration conf;
+    private FileConfiguration conf;
     private Random rnd;
     private List<String> worlds;
 
-    private final NightLandBlockListener blocklistener = new NightLandBlockListener( this );
-    
+    private NightLandBlockListener blocklistener;
+
     public void onDisable() {
         if( moonwatcher_id != -1 )
             getServer().getScheduler().cancelTask( moonwatcher_id );
 
         if( stormwatcher_id != -1 )
             getServer().getScheduler().cancelTask( stormwatcher_id );
-        
+
         System.out.println( "[NightLand] unloaded" );
     }
 
@@ -52,8 +52,8 @@ public class NightLand extends JavaPlugin
             try
             {
                 raw_conf.createNewFile();
-                conf = new Configuration( raw_conf );
-                
+                conf = new FileConfiguration( raw_conf );
+
                 String[] def_world = {
                     getServer().getWorlds().get( 0 ).getName() };
                 conf.setProperty( "worlds", def_world  );
@@ -75,22 +75,23 @@ public class NightLand extends JavaPlugin
         else
         {
             conf = new Configuration( raw_conf );
-            
+
         }
         conf.load();
     }
-    
+
     public void onEnable() {
         PluginManager pm = getServer().getPluginManager();
         rnd = new Random();
         worlds = conf.getStringList( "worlds", null );
-        
+
         // Set up the blockplacing event
         if( conf.getBoolean( "prohibitBedPlacing", false ) )
         {
+            blocklistener = new NightLandBlockListener( this );
 
-            pm.registerEvent( Event.Type.BLOCK_PLACE, blocklistener,
-                              Priority.Normal, this );
+            pm.registerEvent( blocklistener,
+                              EventPriority.NORMAL, this );
         }
 
         // Watching the moon.. or well the time but yea..
@@ -100,7 +101,7 @@ public class NightLand extends JavaPlugin
                         for( String world_name: worlds )
                         {
                             World w = getServer().getWorld( world_name );
-                            
+
                             // Check time reset if needed
                             if( w.getTime() < (long)13672 ||
                                 w.getTime() > (long)21000 )
@@ -133,12 +134,12 @@ public class NightLand extends JavaPlugin
                             int nice_max = conf.getInt( "niceWeatherMax",
                                                          5000 ) - nice_min;
                             int duration = w.getWeatherDuration();
-                            
+
                             if( duration > Math.max( storm_max, nice_max ) )
                                 duration = 0; // Outside our bounds.
                             else if( duration > weather_time )
                                 continue; // Nothing to do for this one yet.
-                            
+
                             if( w.isThundering() )
                             {
                                 // Yay sunshine.. wait... no okey no rain then.
@@ -156,7 +157,7 @@ public class NightLand extends JavaPlugin
                                     storm_min + rnd.nextInt( storm_max ) );
 
                                 duration = w.getThunderDuration();
-                                
+
                             }
 
                             w.setWeatherDuration( duration );
@@ -165,7 +166,7 @@ public class NightLand extends JavaPlugin
                 }, (long)0, (long)weather_time );
         }
 
-        
+
         System.out.print( "[NightLand] loaded, will check:" );
 
         for( String world_name: worlds )
@@ -179,5 +180,5 @@ public class NightLand extends JavaPlugin
 
     public String getBedPlacingMessage() {
         return conf.getString( "bedPlacingMessage", "You can not do that!" );
-    }        
+    }
 }
