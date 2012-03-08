@@ -37,8 +37,8 @@ public class NightLand extends JavaPlugin
 
 
     public void onLoad() {
-        this.getConfig();
-        this.getConfig().options().copyDefaults(true);
+        this.getConfig().options().copyDefaults( true );
+        this.saveConfig();
     }
 
     public void onEnable() {

@@ -1,5 +1,5 @@
 worlds:
-- badday
+- world
 
 # More storms? or only standard ones?
 extraStorms: true
